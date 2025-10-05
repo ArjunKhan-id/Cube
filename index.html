@@ -3,23 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kubus 3D dengan Gambar pada Sisi (Texture dari GitHub)</title>
+    <title>Kubus 3D dengan LogoLogo.png - Repo Cube</title>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: #000; }
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kubus 3D dengan Textures dari Repo GitHub arjunkhan-id/Cube</title>
-    <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: #000; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            background: #000; 
+            font-family: Arial, sans-serif;
+        }
         canvas { display: block; }
-        #loading { position: absolute; top: 50%; left: 50%; color: white; font-family: Arial; transform: translate(-50%, -50%); z-index: 100; }
+        #loading { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            color: white; 
+            font-family: Arial; 
+            transform: translate(-50%, -50%); 
+            z-index: 100; 
+            text-align: center;
+        }
+        #info { 
+            position: absolute; 
+            bottom: 10px; 
+            left: 10px; 
+            color: white; 
+            z-index: 100; 
+            background: rgba(0,0,0,0.5); 
+            padding: 10px; 
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-    <div id="loading">Loading textures dari repo Cube...</div>
+    <div id="loading">Loading LogoLogo.png dari repo Cube...</div>
+    <div id="info">
+        <p>Geser mouse untuk putar kubus | Wheel untuk zoom | Shift+drag untuk geser</p>
+        <p>Texture: LogoLogo.png dari GitHub</p>
+    </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -28,98 +49,96 @@
         // Setup scene, camera, dan renderer
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000); // Background hitam
         document.body.appendChild(renderer.domElement);
 
-        // Array URL gambar dari GitHub repo arjunkhan-id/Cube (URL sudah diperbaiki)
-        const textureUrls = {
-            front: 'https://raw.githubusercontent.com/arjunkhan-id/Cube/main/front.jpg',  // Sisi depan
-            back: 'https://raw.githubusercontent.com/arjunkhan-id/Cube/main/back.jpg',    // Sisi belakang
-            top: 'https://raw.githubusercontent.com/arjunkhan-id/Cube/main/top.jpg',      // Sisi atas
-            bottom: 'https://raw.githubusercontent.com/arjunkhan-id/Cube/main/bottom.jpg', // Sisi bawah
-            left: 'https://raw.githubusercontent.com/arjunkhan-id/Cube/main/left.jpg',    // Sisi kiri
-            right: 'https://raw.githubusercontent.com/arjunkhan-id/Cube/main/right.jpg'   // Sisi kanan
-        };
+        // URL gambar dari repo GitHub "Cube" (raw URL)
+        const logoUrl = 'https://raw.githubusercontent.com/arjunkhan-id/Cube/main/LogoLogo.png';
 
-        // Fungsi untuk load textures
+        // Fungsi untuk load texture
         const loader = new THREE.TextureLoader();
-        const textures = {};
-        let loadedTextures = 0;
-        const totalTextures = 6;
+        let logoTexture = null;
 
-        function loadTexture(key, url) {
-            loader.load(
-                url,
-                (texture) => {
-                    textures[key] = texture;
-                    texture.wrapS = THREE.RepeatWrapping;
-                    texture.wrapT = THREE.RepeatWrapping;
-                    loadedTextures++;
-                    console.log(`Texture ${key} loaded successfully from ${url}`);
-                    if (loadedTextures === totalTextures) {
-                        createCube();
-                        document.getElementById('loading').style.display = 'none';
-                    }
-                },
-                (progress) => {
-                    // Optional: Progress loading (tidak wajib)
-                    console.log(`Loading ${key}: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
-                },
-                (error) => {
-                    console.error('Error loading texture:', url, error);
-                    textures[key] = null; // Fallback ke warna solid
-                    loadedTextures++;
-                    if (loadedTextures === totalTextures) {
-                        createCube();
-                        document.getElementById('loading').style.display = 'none';
-                    }
-                }
-            );
-        }
+        loader.load(
+            logoUrl,
+            (texture) => {
+                logoTexture = texture;
+                logoTexture.wrapS = THREE.RepeatWrapping;
+                logoTexture.wrapT = THREE.RepeatWrapping;
+                logoTexture.minFilter = THREE.LinearFilter; // Smooth texture
+                console.log('LogoLogo.png loaded successfully!');
+                createCube();
+                document.getElementById('loading').style.display = 'none';
+            },
+            (progress) => {
+                console.log(`Loading logo: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
+            },
+            (error) => {
+                console.error('Error loading LogoLogo.png:', error);
+                // Fallback: Buat kubus tanpa texture (warna solid)
+                createCube(true); // true = fallback mode
+                const loadingDiv = document.getElementById('loading');
+                loadingDiv.innerHTML = 'Gagal load LogoLogo.png, menggunakan warna fallback. Cek console untuk detail.';
+                loadingDiv.style.color = '#ff0000';
+                setTimeout(() => { loadingDiv.style.display = 'none'; }, 3000); // Sembunyikan setelah 3 detik
+            }
+        );
 
-        // Load semua textures
-        Object.keys(textureUrls).forEach(key => {
-            loadTexture(key, textureUrls[key]);
-        });
+        // Fungsi buat kubus dengan logo pada setiap sisi
+        function createCube(useFallback = false) {
+            const geometry = new THREE.BoxGeometry(3, 3, 3); // Ukuran lebih besar agar logo terlihat jelas
 
-        // Fungsi buat kubus dengan textures pada setiap face
-        function createCube() {
-            const geometry = new THREE.BoxGeometry(2, 2, 2); // Ukuran 2x2x2 agar texture jelas
-
-            // Materials untuk setiap face (urutan Three.js: right(0), left(1), top(2), bottom(3), front(4), back(5))
-            const materials = [
-                new THREE.MeshPhongMaterial({ map: textures.right || undefined, color: 0xff0000 }),   // Right (merah fallback)
-                new THREE.MeshPhongMaterial({ map: textures.left || undefined, color: 0x00ff00 }),    // Left (hijau fallback)
-                new THREE.MeshPhongMaterial({ map: textures.top || undefined, color: 0x0000ff }),     // Top (biru fallback)
-                new THREE.MeshPhongMaterial({ map: textures.bottom || undefined, color: 0xffff00 }),  // Bottom (kuning fallback)
-                new THREE.MeshPhongMaterial({ map: textures.front || undefined, color: 0xff00ff }),   // Front (magenta fallback)
-                new THREE.MeshPhongMaterial({ map: textures.back || undefined, color: 0x00ffff })    // Back (cyan fallback)
-            ];
+            let materials;
+            if (!useFallback && logoTexture) {
+                // Satu material dengan logo untuk semua sisi
+                const logoMaterial = new THREE.MeshPhongMaterial({ 
+                    map: logoTexture,
+                    color: 0xffffff, // Putih agar logo terang
+                    shininess: 100 // Efek kilau
+                });
+                materials = [
+                    logoMaterial, logoMaterial, logoMaterial, logoMaterial,
+                    logoMaterial, logoMaterial  // 6 sisi sama
+                ];
+            } else {
+                // Fallback: Warna berbeda per sisi
+                materials = [
+                    new THREE.MeshPhongMaterial({ color: 0xff0000 }),   // Right (merah)
+                    new THREE.MeshPhongMaterial({ color: 0x00ff00 }),   // Left (hijau)
+                    new THREE.MeshPhongMaterial({ color: 0x0000ff }),   // Top (biru)
+                    new THREE.MeshPhongMaterial({ color: 0xffff00 }),   // Bottom (kuning)
+                    new THREE.MeshPhongMaterial({ color: 0xff00ff }),   // Front (magenta)
+                    new THREE.MeshPhongMaterial({ color: 0x00ffff })   // Back (cyan)
+                ];
+            }
 
             const cube = new THREE.Mesh(geometry, materials);
             scene.add(cube);
 
-            // Tambahkan cahaya (penting untuk textures)
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.6); // Cahaya ambient lembut
+            // Tambahkan cahaya untuk efek 3D bagus
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
             scene.add(ambientLight);
-            const pointLight = new THREE.PointLight(0xffffff, 1, 100); // Cahaya titik putih
+            const pointLight = new THREE.PointLight(0xffffff, 1, 100);
             pointLight.position.set(10, 10, 10);
             scene.add(pointLight);
 
-            // Posisi awal kamera
-            camera.position.z = 5;
+            // Posisi awal kamera (sedikit mundur agar kubus pas)
+            camera.position.z = 6;
 
             // Kontrol interaksi (geser/putar/zoom dengan mouse)
             const controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true; // Efek halus
+            controls.enableDamping = true;
             controls.dampingFactor = 0.05;
+            controls.enableZoom = true;
+            controls.enablePan = true;
 
             // Fungsi animasi: Rotasi otomatis + update kontrol
             function animate() {
                 requestAnimationFrame(animate);
-                cube.rotation.x += 0.01; // Rotasi X
-                cube.rotation.y += 0.01; // Rotasi Y
+                cube.rotation.x += 0.005; // Rotasi lambat X
+                cube.rotation.y += 0.01;  // Rotasi Y
                 controls.update();
                 renderer.render(scene, camera);
             }
